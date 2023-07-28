@@ -468,15 +468,6 @@ function connect<
     context = ReactReduxContext,
   }: ConnectOptions<unknown, unknown, unknown, unknown> = {}
 ): unknown {
-  if (process.env.NODE_ENV !== 'production') {
-    if (pure !== undefined && !hasWarnedAboutDeprecatedPureOption) {
-      hasWarnedAboutDeprecatedPureOption = true
-      warning(
-        'The `pure` option has been removed. `connect` is now always a "pure/memoized" component'
-      )
-    }
-  }
-
   const Context = context
 
   const initMapStateToProps = mapStateToPropsFactory(mapStateToProps)
@@ -485,22 +476,16 @@ function connect<
 
   const shouldHandleStateChanges = Boolean(mapStateToProps)
 
+  /**
+   * 
+   * @param WrappedComponent 组件
+   * @returns 
+   */
   const wrapWithConnect = <TProps,>(
     WrappedComponent: ComponentType<TProps>
   ) => {
     type WrappedComponentProps = TProps &
       ConnectPropsMaybeWithoutContext<TProps>
-
-    if (
-      process.env.NODE_ENV !== 'production' &&
-      !isValidElementType(WrappedComponent)
-    ) {
-      throw new Error(
-        `You must pass a component to the function returned by connect. Instead received ${stringifyComponent(
-          WrappedComponent
-        )}`
-      )
-    }
 
     const wrappedComponentName =
       WrappedComponent.displayName || WrappedComponent.name || 'Component'
@@ -532,51 +517,22 @@ function connect<
     function ConnectFunction<TOwnProps>(
       props: InternalConnectProps & TOwnProps
     ) {
-      const [propsContext, reactReduxForwardedRef, wrapperProps] =
-        useMemo(() => {
-          // Distinguish between actual "data" props that were passed to the wrapper component,
-          // and values needed to control behavior (forwarded refs, alternate context instances).
-          // To maintain the wrapperProps object reference, memoize this destructuring.
-          const { reactReduxForwardedRef, ...wrapperProps } = props
-          return [props.context, reactReduxForwardedRef, wrapperProps]
-        }, [props])
+      const { reactReduxForwardedRef, ...wrapperProps } = props
+      const propsContext = props.context
 
-      const ContextToUse: ReactReduxContextInstance = useMemo(() => {
-        // Users may optionally pass in a custom context instance to use instead of our ReactReduxContext.
-        // Memoize the check that determines which context instance we should use.
-        return propsContext &&
-          propsContext.Consumer &&
-          // @ts-ignore
-          isContextConsumer(<propsContext.Consumer />)
-          ? propsContext
-          : Context
-      }, [propsContext, Context])
+      /** 用户可以选择传入一个自定义上下文实例来代替我们的ReactReduxContext。记住决定我们应该使用哪个上下文实例的检查。 */
+      const ContextToUse: ReactReduxContextInstance = propsContext || Context;
 
       // Retrieve the store and ancestor subscription via context, if available
       const contextValue = useContext(ContextToUse)
 
-      // The store _must_ exist as either a prop or in context.
-      // We'll check to see if it _looks_ like a Redux store first.
-      // This allows us to pass through a `store` prop that is just a plain value.
+      /** 判断是否像一个满足的 redux store */
       const didStoreComeFromProps =
         Boolean(props.store) &&
         Boolean(props.store!.getState) &&
         Boolean(props.store!.dispatch)
       const didStoreComeFromContext =
         Boolean(contextValue) && Boolean(contextValue!.store)
-
-      if (
-        process.env.NODE_ENV !== 'production' &&
-        !didStoreComeFromProps &&
-        !didStoreComeFromContext
-      ) {
-        throw new Error(
-          `Could not find "store" in the context of ` +
-            `"${displayName}". Either wrap the root component in a <Provider>, ` +
-            `or pass a custom React context provider to <Provider> and the corresponding ` +
-            `React context consumer to ${displayName} in connect options.`
-        )
-      }
 
       // Based on the previous check, one of these must be true
       const store: Store = didStoreComeFromProps
@@ -777,7 +733,7 @@ function connect<
       WrappedComponent: typeof WrappedComponent
     }
 
-    // Add a hacky cast to get the right output type
+    // 添加一个hack强制转换以获得正确的输出类型
     const Connect = _Connect as unknown as ConnectedComponent<
       typeof WrappedComponent,
       WrappedComponentProps

@@ -18,6 +18,7 @@ export function createStoreHook<
   A extends BasicAction = AnyAction
   // @ts-ignore
 >(context?: Context<ReactReduxContextValue<S, A>> = ReactReduxContext) {
+  /** 如果存在 context 那么从context里面获取 store 否则创建一个 store */
   const useReduxContext =
     // @ts-ignore
     context === ReactReduxContext

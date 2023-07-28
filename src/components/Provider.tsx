@@ -34,6 +34,11 @@ export interface ProviderProps<A extends Action = AnyAction, S = unknown> {
   children: ReactNode
 }
 
+/**
+ * 
+ * @param param0 
+ * @returns 
+ */
 function Provider<A extends Action = AnyAction, S = unknown>({
   store,
   context,
@@ -53,17 +58,24 @@ function Provider<A extends Action = AnyAction, S = unknown>({
     }
   }, [store, serverState, stabilityCheck, noopCheck])
 
+  /** 正常来说 store 应该是 不会变了 */
   const previousState = useMemo(() => store.getState(), [store])
 
+  // 这里是一个比较hack的方法，因为这个是将 use Effect 和 use Layout Effect 
+  // 两个 hook 进行了重叠，就像是 用了 if else 一样，只是因为 这两个属性的本质是
+  // 相同的，所以才可以使用，但是这个方法是比较hack的
   useIsomorphicLayoutEffect(() => {
     const { subscription } = contextValue
     subscription.onStateChange = subscription.notifyNestedSubs
+    // 初始化
     subscription.trySubscribe()
 
     if (previousState !== store.getState()) {
+      // 每次不相等那么，就会调用 notify 方法
       subscription.notifyNestedSubs()
     }
     return () => {
+      // 取消所有的监听
       subscription.tryUnsubscribe()
       subscription.onStateChange = undefined
     }

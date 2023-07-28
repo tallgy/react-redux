@@ -1,4 +1,5 @@
 // Default to a dummy "batch" implementation that just runs the callback
+/** 默认为只运行回调的虚拟“批处理”实现 */
 function defaultNoopBatch(callback: () => void) {
   callback()
 }

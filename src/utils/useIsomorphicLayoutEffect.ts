@@ -16,4 +16,8 @@ export const canUseDOM = !!(
   typeof window.document.createElement !== 'undefined'
 )
 
+/**
+ * 就是 useEffect 
+ * 只是判断是否已经可以使用 DOM 来决定使用 useLayoutEffect 还是 useEffect
+ */
 export const useIsomorphicLayoutEffect = canUseDOM ? useLayoutEffect : useEffect

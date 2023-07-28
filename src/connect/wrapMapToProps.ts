@@ -20,13 +20,7 @@ export function wrapMapToPropsConstant(
   //  could be a dispatch function in some cases (ex: whenMapDispatchToPropsIsMissing)
   //  and a state object in some others (ex: whenMapStateToPropsIsMissing)
   // eslint-disable-next-line no-unused-vars
-  getConstant: (dispatch: Dispatch) =>
-    | {
-        dispatch?: Dispatch
-        dependsOnOwnProps?: boolean
-      }
-    | ActionCreatorsMapObject
-    | ActionCreator<any>
+  getConstant: any
 ) {
   return function initConstantSelector(dispatch: Dispatch) {
     const constant = getConstant(dispatch)
@@ -39,6 +33,8 @@ export function wrapMapToPropsConstant(
   }
 }
 
+// createMapToPropsProxy 使用 dependsOnOwnProps 来决定是否将 props 作为参数传递给被包装的 mapToProps 函数。
+// makpureppsselector 还使用它来确定当道具发生更改时是否需要调用 mapToProps。
 // dependsOnOwnProps is used by createMapToPropsProxy to determine whether to pass props as args
 // to the mapToProps function being wrapped. It is also used by makePurePropsSelector to determine
 // whether mapToProps needs to be invoked when props have changed.
